@@ -41,7 +41,8 @@ const damping = 0.97; // Friction/drag to slow the creatures down (value < 1)
 const CREATURE_RADIUS = 50; // NEW: Half of the creature's bodySize (100)
 
 function setup() {
-  createCanvas(800, 500);
+  let canvas = createCanvas(800, 500);
+  canvas.parent("p5-canvas-container");
   bodyX = width / 2;
   bodyY = height / 2;
   initializeCharges();
