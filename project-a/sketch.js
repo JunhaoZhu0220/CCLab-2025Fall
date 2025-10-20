@@ -51,7 +51,6 @@ function setup() {
 
 function mousePressed() {
   if (haveStopped) {
-    resetSimulation();
     return;
   }
   
@@ -345,19 +344,6 @@ function checkCollisions() {
       redCharge2Y = random(height);
     }
   }
-}
-
-
-function resetSimulation() {
-  positiveExists = false;
-  negativeExists = false;
-  haveStopped = false;
-  isSeparating = false;
-  powerLevel = 0;
-  initializeCharges();
-  initializeRedCharges();
-  bodyX = mouseX;
-  bodyY = mouseY;
 }
 
 function drawInternalArcs() {
