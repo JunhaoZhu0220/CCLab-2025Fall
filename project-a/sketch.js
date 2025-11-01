@@ -53,7 +53,7 @@ function mousePressed() {
   if (haveStopped) {
     return;
   }
-  
+
   if (isSeparating) {
     return;
   }
@@ -112,7 +112,7 @@ function draw() {
       if (isSeparating) {
         let clampedMouseX = constrain(mouseX, CREATURE_RADIUS, width - CREATURE_RADIUS);
         let clampedMouseY = constrain(mouseY, CREATURE_RADIUS, height - CREATURE_RADIUS);
-        
+
         if (separationControlIsPositive) {
           positiveX = lerp(positiveX, clampedMouseX, 0.1);
           positiveY = lerp(positiveY, clampedMouseY, 0.1);
@@ -325,7 +325,7 @@ function checkCollisions() {
     charge5Y = random(height);
   }
 
-  
+
   if (haveStopped) {
     if (
       redCharge1Active &&
