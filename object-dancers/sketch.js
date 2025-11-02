@@ -18,7 +18,7 @@ function setup() {
   canvas.parent("p5-canvas-container");
 
   // ...except to adjust the dancer's name on the next line:
-  dancer = new PickleRick(width / 2, height / 2);
+  dancer = new CactusDancer(width / 2, height / 2);
 }
 
 function draw() {
@@ -32,25 +32,37 @@ function draw() {
 
 // You only code inside this class.
 // Start by giving the dancer your name, e.g. LeonDancer.
-class PickleRick {
+class CactusDancer {
   constructor(startX, startY) {
     this.x = startX;
     this.y = startY;
-    this.bodyCol = color(95, 151, 78);
-    this.eyeSize = 30;
-    this.eyeCol = color('white');
-    this.pupilCol = color(0);
+    // Three colors for the pot
+    this.potCol1 = color(177, 102, 51);
+    this.potCol2 = color(199, 135, 77);
+    this.potCol3 = color(211, 154, 98);
+    // Color for the cactus body
+    this.cactusCol = color(90, 141, 23);
+    // Color for spikes
+    this.spikeCol = color('red');
 
-    // add properties for your dancer here:
-    this.twistSpeed = 0.05;
-    this.twistAmplitude = 15;
-    this.bodyWaviness = 0.05;
-    // ---
+    // Body sway parameters
+    this.swayAngle = 0;
+    this.swaySpeed = 0.05;
+    this.swayAmount = 0.15;
+
+    // Arm movement parameters
+    this.armLength = 80;
+    this.armWaveAmplitude = 10;
+    this.armWaveSegments = 30;
+
+
+
+
   }
   update() {
-    // update properties here to achieve
-    // your dancer's desired moves and behaviour
+    this.swayAngle += this.swaySpeed;
   }
+
   display() {
     // the push and pop, along with the translate 
     // places your whole dancer object at this.x and this.y.
@@ -60,9 +72,29 @@ class PickleRick {
 
     // ******** //
     // ⬇️ draw your dancer from here ⬇️
-    
-    this.drawBody(0,0);
-    this.drawEye(0,0); 
+
+    push();
+    translate(0, 40);
+    rotate(sin(this.swayAngle) * this.swayAmount);
+    translate(0, -40);
+    this.drawCactusBody(0, -10);
+    this.drawArms(0, 0);
+    // Left Eye
+    this.drawEyes(-10, -30);
+    // Right Eye
+    this.drawEyes(10, -30);
+    // Mouth
+    this.drawMouth(0, 5);
+    // Spikes
+    this.drawSpikesRight(30, -50);
+    this.drawSpikesRight(30, -40);
+    this.drawSpikesRight(30, -30);
+    this.drawSpikesLeft(-30, -50);
+    this.drawSpikesLeft(-30, -40);
+    this.drawSpikesLeft(-30, -30);
+    pop();
+
+    this.drawPot(0, 40);
 
     // ⬆️ draw your dancer above ⬆️
     // ******** //
@@ -78,50 +110,106 @@ class PickleRick {
     pop();
   }
 
-  drawBody(bodyX, bodyY){
-    fill(this.bodyCol);
+  drawPot(potX, potY) {
     noStroke();
+    let steps = 50;
 
-    let bodyWidth = 60;
-    let topY = bodyY - 75;
-    let bottomY = bodyY + 75;
-    let step = 5;
+    rectMode(CORNER);
+    for (let i = 0; i < steps; i++) {
+      let t = i / steps;
+      let c;
 
-    let topWaveOffset = sin(topY * this.bodyWaviness + frameCount * this.twistSpeed) * this.twistAmplitude;
-    let bottomWaveOffset = sin(bottomY * this.bodyWaviness + frameCount * this.twistSpeed) * this.twistAmplitude;
-    
-    beginShape();
-    vertex(bodyX + bodyWidth / 2 + topWaveOffset, topY);
-    for (let y = topY + step; y <= bottomY; y += step) {
-      let waveOffset = sin(y * this.bodyWaviness + frameCount * this.twistSpeed) * this.twistAmplitude;
-      vertex(bodyX + bodyWidth / 2 + waveOffset, y);
+      if (t < 0.5) {
+        c = lerpColor(this.potCol1, this.potCol2, t * 2);
+      } else {
+        c = lerpColor(this.potCol2, this.potCol3, (t - 0.5) * 2);
+      }
+
+      fill(c);
+      let x = potX - 60 + (120 / steps) * i;
+      let w = 120 / steps + 1;
+      rect(x, potY - 10, w, 20);
     }
-    vertex(bodyX - bodyWidth / 2 + bottomWaveOffset, bottomY);
-    for (let y = bottomY - step; y >= topY; y -= step) {
-      let waveOffset = sin(y * this.bodyWaviness + frameCount * this.twistSpeed) * this.twistAmplitude;
-      vertex(bodyX - bodyWidth / 2 + waveOffset, y);
+
+    for (let i = 0; i < steps; i++) {
+      let t = i / steps;
+      let c;
+
+      if (t < 0.5) {
+        c = lerpColor(this.potCol1, this.potCol2, t * 2);
+      } else {
+        c = lerpColor(this.potCol2, this.potCol3, (t - 0.5) * 2);
+      }
+
+      fill(c);
+
+      let topLeft = potX - 55 + (110 / steps) * i;
+      let topRight = potX - 55 + (110 / steps) * (i + 1);
+      let bottomLeft = potX - 40 + (80 / steps) * i;
+      let bottomRight = potX - 40 + (80 / steps) * (i + 1);
+
+      quad(topLeft, potY + 10, topRight, potY + 10, bottomRight, potY + 60, bottomLeft, potY + 60);
     }
-    endShape(CLOSE);
-    ellipse(bodyX + topWaveOffset, topY, bodyWidth, 50);
-    ellipse(bodyX + bottomWaveOffset, bottomY, bodyWidth, 50);
+
+    rectMode(CORNER);
+
+  }
+
+  drawCactusBody(bodyX, bodyY) {
+    noStroke();
+    fill(this.cactusCol);
+    rectMode(CENTER);
+    rect(bodyX, bodyY, 60, 150, 80);
     rectMode(CORNER);
   }
 
-  drawFace() {
-    fill(this.faceCol);
-    ellipse(-40, -20, 80);
+  drawArms(bodyX, bodyY) {
+    strokeWeight(20);
+    stroke(this.cactusCol);
+    noFill();
+    // Left Arm
+    beginShape();
+    for (let i = 0; i <= this.armWaveSegments; i++) {
+      let t = i / this.armWaveSegments;
+      let x = bodyX - t * this.armLength;
+      let y = bodyY + sin(t * PI * 2 + this.swayAngle * 2) * this.armWaveAmplitude;
+      vertex(x, y);
+    }
+    endShape();
+    // Right Arm
+    beginShape();
+    for (let i = 0; i <= this.armWaveSegments; i++) {
+      let t = i / this.armWaveSegments;
+      let x = bodyX + t * this.armLength;
+      let y = bodyY + cos(t * PI * 2 + PI + this.swayAngle * 2) * this.armWaveAmplitude;
+      vertex(x, y);
+    }
+    endShape();
   }
 
-  drawEye(eyeX, eyeY) {
-    // Eye
-    fill(this.eyeCol);
-    ellipse(eyeX, eyeY, this.eyeSize);
-    // Pupil
-    fill(this.pupilCol);
-    ellipse(eyeX, eyeY, 1);
+  drawEyes(eyeX, eyeY) {
+    fill(0);
+    noStroke();
+    ellipse(eyeX, eyeY, 8, 8);
   }
 
-  drawMouth(){
+  drawMouth(mouthX, mouthY) {
+    stroke(0);
+    strokeWeight(2);
+    ellipse(mouthX, mouthY, 20, 20);
+    
+  }
+
+  drawSpikesRight(spikeX, spikeY) {
+    noStroke();
+    fill(this.spikeCol);
+    triangle(spikeX, spikeY, spikeX, spikeY + 5, spikeX + 20, spikeY + 2.5);
+  }
+
+  drawSpikesLeft(spikeX, spikeY) {
+    noStroke();
+    fill(this.spikeCol);
+    triangle(spikeX, spikeY, spikeX, spikeY + 5, spikeX - 20, spikeY + 2.5);
   }
 
   drawReferenceShapes() {
