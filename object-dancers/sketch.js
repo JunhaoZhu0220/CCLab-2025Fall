@@ -99,13 +99,6 @@ class CactusDancer {
     // ⬆️ draw your dancer above ⬆️
     // ******** //
 
-    // the next function draws a SQUARE and CROSS
-    // to indicate the approximate size and the center point
-    // of your dancer.
-    // it is using "this" because this function, too, 
-    // is a part if your Dancer object.
-    // comment it out or delete it eventually.
-    this.drawReferenceShapes();
 
     pop();
   }
@@ -210,17 +203,6 @@ class CactusDancer {
     noStroke();
     fill(this.spikeCol);
     triangle(spikeX, spikeY, spikeX, spikeY + 5, spikeX - 20, spikeY + 2.5);
-  }
-
-  drawReferenceShapes() {
-    noFill();
-    stroke(255, 0, 0);
-    line(-5, 0, 5, 0);
-    line(0, -5, 0, 5);
-    stroke(255);
-    rect(-100, -100, 200, 200);
-    fill(255);
-    stroke(0);
   }
 }
 
