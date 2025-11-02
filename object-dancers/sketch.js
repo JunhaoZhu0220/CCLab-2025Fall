@@ -190,7 +190,7 @@ class CactusDancer {
     stroke(0);
     strokeWeight(2);
     ellipse(mouthX, mouthY, 20, 20);
-    
+
   }
 
   drawSpikesRight(spikeX, spikeY) {
