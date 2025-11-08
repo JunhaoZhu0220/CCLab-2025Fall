@@ -11,11 +11,7 @@ let started = false;
 
 function preload() {
   soundFormats('wav');
-  bgMusic = loadSound('assets/bg-music.wav',
-    () => { },
-    () => { },
-    () => { }
-  );
+  bgMusic = loadSound('assets/bg-music.wav');
 }
 
 function setup() {
@@ -68,7 +64,7 @@ function draw() {
 function mousePressed() {
   if (!started) {
     started = true;
-    userStartAudio();
+    bgMusic.play();
     bgMusic.setVolume(0.5);
     bgMusic.loop();
     generationTargetCount = NUM_OF_PARTICLES;
