@@ -7,6 +7,7 @@ let particles = [];
 let currentBaseHue = 0;
 let generationTargetCount = 0;
 let bgMusic;
+let started = false; // 标记是否已经开始
 
 function preload() {
   bgMusic = loadSound('assets/bg-music.wav');
@@ -21,13 +22,22 @@ function setup() {
   ellipseMode(CENTER);
   colorMode(HSL, 100);
   currentBaseHue = random(100);
-  bgMusic.loop();
   bgMusic.setVolume(0.5);
 }
 
 function draw() {
   background(0, 0, 0, 4);
   translate(width / 2, height / 2);
+  if (!started) {
+    push();
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(24);
+    text("ENDLESS", 0, 0);
+    pop();
+    return;
+  }
+
   particles.sort((a, b) => a.y - b.y);
 
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -48,6 +58,16 @@ function draw() {
   if (generationTargetCount > 0 && particles.length < MAX_OF_PARTICLES) {
     particles.push(new Particle(currentBaseHue));
     generationTargetCount--;
+  }
+}
+
+function mousePressed() {
+  // 用户点击后开始
+  if (!started) {
+    started = true;
+    userStartAudio(); // 启用音频
+    bgMusic.loop(); // 开始播放音乐
+    generationTargetCount = NUM_OF_PARTICLES; // 开始生成粒子
   }
 }
 
