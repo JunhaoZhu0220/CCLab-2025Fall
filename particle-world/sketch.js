@@ -7,10 +7,15 @@ let particles = [];
 let currentBaseHue = 0;
 let generationTargetCount = 0;
 let bgMusic;
-let started = false; // 标记是否已经开始
+let started = false;
 
 function preload() {
-  bgMusic = loadSound('assets/bg-music.wav');
+  soundFormats('wav');
+  bgMusic = loadSound('assets/bg-music.wav',
+    () => { },
+    () => { },
+    () => { }
+  );
 }
 
 function setup() {
@@ -22,7 +27,6 @@ function setup() {
   ellipseMode(CENTER);
   colorMode(HSL, 100);
   currentBaseHue = random(100);
-  bgMusic.setVolume(0.5);
 }
 
 function draw() {
@@ -62,12 +66,12 @@ function draw() {
 }
 
 function mousePressed() {
-  // 用户点击后开始
   if (!started) {
     started = true;
-    userStartAudio(); // 启用音频
-    bgMusic.loop(); // 开始播放音乐
-    generationTargetCount = NUM_OF_PARTICLES; // 开始生成粒子
+    userStartAudio();
+    bgMusic.setVolume(0.5);
+    bgMusic.loop();
+    generationTargetCount = NUM_OF_PARTICLES;
   }
 }
 
