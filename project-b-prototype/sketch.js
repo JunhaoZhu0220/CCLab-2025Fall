@@ -3,9 +3,6 @@
  * separated into SoundEngine, Oscilloscope, and UserInterface classes.
  */
 
-let engine;
-let scope;
-let ui;
 
 function setup() {
   let canvas = createCanvas(800, 500);
@@ -14,9 +11,9 @@ function setup() {
   colorMode(HSB, 360, 100, 100, 1.0);
 
   // Instantiate our objects
-  engine = new SoundEngine();
-  scope = new Oscilloscope();
-  ui = new UserInterface();
+  let engine = new SoundEngine();
+  let scope = new Oscilloscope();
+  let ui = new UserInterface();
 }
 
 function draw() {
