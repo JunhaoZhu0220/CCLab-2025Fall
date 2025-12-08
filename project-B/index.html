@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CCLab Project B</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: 'Courier New', Courier, monospace;
+      color: #0f0;
+      overflow: hidden;
+    }
+
+    .main-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    h1 {
+      margin: 10px 0;
+      font-size: 24px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 5px #0f0;
+      z-index: 10;
+      display: none;
+    }
+
+    #led-title {
+      height: 60px;
+      margin: 15px 0;
+      z-index: 10;
+    }
+
+    #led-title canvas {
+      display: block;
+    }
+
+    #p5-canvas-container {
+      position: relative;
+      width: 100%;
+      flex-grow: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      background: rgba(0, 0, 0, 0.6);
+      cursor: pointer;
+    }
+
+    #overlay p {
+      font-size: 18px;
+      background: #000;
+      padding: 10px 20px;
+      border: 1px solid #0f0;
+      box-shadow: 0 0 10px #0f0;
+    }
+
+    #overlay .instructions {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #0f0;
+      text-align: center;
+      opacity: 0.7;
+      line-height: 1.8;
+    }
+
+    #overlay .instructions span {
+      display: block;
+    }
+
+    #control-hints {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11px;
+      color: #0f0;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px 15px;
+      border: 1px solid rgba(0, 255, 0, 0.3);
+      border-radius: 3px;
+      display: none;
+      opacity: 0.6;
+      transition: opacity 0.3s;
+    }
+
+    #control-hints:hover {
+      opacity: 1;
+    }
+
+    #control-hints span {
+      margin: 0 10px;
+    }
+
+    #control-hints .key {
+      color: #0ff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="main-wrapper">
+    <div id="led-title"></div>
+    <h1>The Voyager</h1>
+
+    <!-- the following div will contain the p5 canvas. -->
+    <div id="p5-canvas-container">
+      <!-- p5 canvas will be appended here. -->
+      <div id="overlay">
+        <div>
+          <p>&gt; CLICK TO INITIALIZE AUDIO &lt;</p>
+          <div class="instructions">
+            <span>🎤 Matrix responds to sound input</span>
+            <span>🖱️ Drag to rotate view</span>
+            <span>🔍 Scroll to zoom in/out</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Persistent control hints -->
+      <div id="control-hints">
+        <span><span class="key">🎤 SOUND</span> affects matrix</span>
+        <span><span class="key">DRAG</span> rotate</span>
+        <span><span class="key">SCROLL</span> zoom</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- the script tag below should always be at the bottom, right before the closing body tag -->
+  <script src="sketch.js"></script>
+
+  <script>
+    const LED_FONT = {
+      'A': [
+        [0, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1]
+      ],
+      'B': [
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 0]
+      ],
+      'C': [
+        [0, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 1],
+        [0, 1, 1, 1, 0]
+      ],
+      'D': [
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 0]
+      ],
+      'E': [
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1]
+      ],
+      'F': [
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0]
+      ],
+      'G': [
+        [0, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0],
+        [1, 0, 1, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [0, 1, 1, 1, 0]
+      ],
+      'H': [
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1]
+      ],
+      'I': [
+        [1, 1, 1, 1, 1],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [1, 1, 1, 1, 1]
+      ],
+      'J': [
+        [0, 0, 1, 1, 1],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 1, 0],
+        [1, 0, 0, 1, 0],
+        [1, 0, 0, 1, 0],
+        [0, 1, 1, 0, 0]
+      ],
+      'K': [
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 1, 0],
+        [1, 0, 1, 0, 0],
+        [1, 1, 0, 0, 0],
+        [1, 0, 1, 0, 0],
+        [1, 0, 0, 1, 0],
+        [1, 0, 0, 0, 1]
+      ],
+      'L': [
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1]
+      ],
+      'M': [
+        [1, 0, 0, 0, 1],
+        [1, 1, 0, 1, 1],
+        [1, 0, 1, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1]
+      ],
+      'N': [
+        [1, 0, 0, 0, 1],
+        [1, 1, 0, 0, 1],
+        [1, 0, 1, 0, 1],
+        [1, 0, 0, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1]
+      ],
+      'O': [
+        [0, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [0, 1, 1, 1, 0]
+      ],
+      'P': [
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0]
+      ],
+      'Q': [
+        [0, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 1, 0, 1],
+        [1, 0, 0, 1, 0],
+        [0, 1, 1, 0, 1]
+      ],
+      'R': [
+        [1, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 0],
+        [1, 0, 1, 0, 0],
+        [1, 0, 0, 1, 0],
+        [1, 0, 0, 0, 1]
+      ],
+      'S': [
+        [0, 1, 1, 1, 0],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [0, 1, 1, 1, 0]
+      ],
+      'T': [
+        [1, 1, 1, 1, 1],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0]
+      ],
+      'U': [
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [0, 1, 1, 1, 0]
+      ],
+      'V': [
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [0, 1, 0, 1, 0],
+        [0, 1, 0, 1, 0],
+        [0, 0, 1, 0, 0]
+      ],
+      'W': [
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 1, 0, 1],
+        [1, 0, 1, 0, 1],
+        [1, 1, 0, 1, 1],
+        [1, 0, 0, 0, 1]
+      ],
+      'X': [
+        [1, 0, 0, 0, 1],
+        [0, 1, 0, 1, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 1, 0, 1, 0],
+        [1, 0, 0, 0, 1]
+      ],
+      'Y': [
+        [1, 0, 0, 0, 1],
+        [0, 1, 0, 1, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 1, 0, 0]
+      ],
+      'Z': [
+        [1, 1, 1, 1, 1],
+        [0, 0, 0, 0, 1],
+        [0, 0, 0, 1, 0],
+        [0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0],
+        [1, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1]
+      ],
+      ' ': [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0]
+      ]
+    };
+
+    class LEDTitle {
+      constructor(containerId, text) {
+        this.container = document.getElementById(containerId);
+        this.text = text.toUpperCase();
+        this.dotSize = 6;
+        this.dotGap = 2;
+        this.charGap = 4;
+        this.rows = 7;
+        this.cols = 5;
+
+        this.calculateSize();
+        this.createCanvas();
+        this.animate();
+      }
+
+      calculateSize() {
+        const charWidth = this.cols * (this.dotSize + this.dotGap);
+        this.width = this.text.length * (charWidth + this.charGap) + 20;
+        this.height = this.rows * (this.dotSize + this.dotGap) + 20;
+      }
+
+      createCanvas() {
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        this.ctx = this.canvas.getContext('2d');
+        this.container.appendChild(this.canvas);
+      }
+
+      drawDot(x, y, isOn, brightness = 1, hueShift = 0) {
+        const ctx = this.ctx;
+        const radius = this.dotSize / 2;
+
+        ctx.beginPath();
+        ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2);
+
+        if (isOn) {
+          const glow = brightness * (0.8 + Math.random() * 0.2);
+          const g = Math.floor(200 + hueShift * 55);
+          const r = Math.floor(50 + hueShift * 50);
+          const b = Math.floor(80 + hueShift * 30);
+          const gradient = ctx.createRadialGradient(
+            x + radius, y + radius, 0,
+            x + radius, y + radius, radius * 2.5
+          );
+          gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${glow})`);
+          gradient.addColorStop(0.3, `rgba(${r * 0.8}, ${g * 0.9}, ${b * 0.7}, ${glow * 0.6})`);
+          gradient.addColorStop(1, `rgba(0, ${g * 0.5}, 0, 0)`);
+
+          ctx.fillStyle = gradient;
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(x + radius, y + radius, radius * 0.8, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${r + 50}, ${Math.min(255, g + 50)}, ${b + 50}, ${glow})`;
+          ctx.fill();
+        } else {
+          ctx.fillStyle = 'rgba(20, 40, 20, 0.4)';
+          ctx.fill();
+        }
+      }
+
+      render(time) {
+        const ctx = this.ctx;
+        ctx.fillStyle = 'rgba(5, 10, 5, 1)';
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        let offsetX = 10;
+        const offsetY = 10;
+
+        const waveSpeed = 0.003;
+        const pulseSpeed = 0.004;
+        const scanSpeed = 0.002;
+
+        for (let c = 0; c < this.text.length; c++) {
+          const char = this.text[c];
+          const pattern = LED_FONT[char] || LED_FONT[' '];
+
+          for (let row = 0; row < this.rows; row++) {
+            for (let col = 0; col < this.cols; col++) {
+              const x = offsetX + col * (this.dotSize + this.dotGap);
+              const y = offsetY + row * (this.dotSize + this.dotGap);
+              const isOn = pattern[row][col] === 1;
+              const wave = Math.sin(time * waveSpeed + c * 0.3 + col * 0.2) * 0.5 + 0.5;
+              const pulse = Math.sin(time * pulseSpeed) * 0.15 + 0.85;
+              const scanPos = (Math.sin(time * scanSpeed) * 0.5 + 0.5) * this.text.length;
+              const scanDist = Math.abs(c - scanPos);
+              const scanBoost = Math.max(0, 1 - scanDist * 0.3) * 0.3;
+              const flicker = Math.random() > 0.98 ? 0.7 : 1;
+              const brightness = isOn ? (0.7 + wave * 0.2 + scanBoost) * pulse * flicker : 0;
+              const hueShift = wave * 0.3;
+
+              this.drawDot(x, y, isOn, brightness, hueShift);
+            }
+          }
+
+          offsetX += this.cols * (this.dotSize + this.dotGap) + this.charGap;
+        }
+        this.drawScanline(ctx, time);
+      }
+
+      drawScanline(ctx, time) {
+        const scanY = (Math.sin(time * 0.001) * 0.5 + 0.5) * this.height;
+        const gradient = ctx.createLinearGradient(0, scanY - 10, 0, scanY + 10);
+        gradient.addColorStop(0, 'rgba(0, 255, 100, 0)');
+        gradient.addColorStop(0.5, 'rgba(0, 255, 100, 0.1)');
+        gradient.addColorStop(1, 'rgba(0, 255, 100, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, scanY - 10, this.width, 20);
+      }
+
+      animate() {
+        const loop = (time) => {
+          this.render(time);
+          requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+      }
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      new LEDTitle('led-title', 'THE VOYAGER');
+    });
+  </script>
+</body>
+
+</html>
