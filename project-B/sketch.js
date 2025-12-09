@@ -206,24 +206,25 @@ function draw() {
 
 function mousePressed() {
     if (!audioStarted) {
-        userStartAudio();
-        mic.start();
+        userStartAudio().then(() => {
+            mic.start();
 
-        // Play background music
-        if (bgMusic.isLoaded()) {
-            bgMusic.setVolume(0.5);
-            bgMusic.loop();
-        }
+            // Play background music
+            if (bgMusic && bgMusic.isLoaded()) {
+                bgMusic.setVolume(0.5);
+                bgMusic.loop();
+            }
 
-        audioStarted = true;
+            audioStarted = true;
 
-        // Hide overlay
-        const overlay = document.getElementById('overlay');
-        if (overlay) overlay.style.display = 'none';
+            // Hide overlay
+            const overlay = document.getElementById('overlay');
+            if (overlay) overlay.style.display = 'none';
 
-        // Show persistent control hints
-        const hints = document.getElementById('control-hints');
-        if (hints) hints.style.display = 'block';
+            // Show persistent control hints
+            const hints = document.getElementById('control-hints');
+            if (hints) hints.style.display = 'block';
+        });
     }
 }
 
