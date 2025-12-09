@@ -36,16 +36,16 @@ function setup() {
     }
     cols = floor((width - margin * 2) / size);
     rows = floor((height - margin * 2) / size);
-    
+
     for (let i = 0; i < cols; i++) {
         boxes[i] = [];
         for (let j = 0; j < rows; j++) {
-            let x = -width/2 + margin + size/2 + i * size;
-            let y = -height/2 + margin + size/2 + j * size;
+            let x = -width / 2 + margin + size / 2 + i * size;
+            let y = -height / 2 + margin + size / 2 + j * size;
             let z = 0;
             let distance = dist(x, y, 0, 0);
-            let angle = map(distance, 0, width/2, 0, TWO_PI * 2);
-            let hue = map(distance, 0, width/2, 120, 280);
+            let angle = map(distance, 0, width / 2, 0, TWO_PI * 2);
+            let hue = map(distance, 0, width / 2, 120, 280);
             boxes[i][j] = new Box(x, y, z, angle, scl, speed, hue);
         }
     }
@@ -62,7 +62,7 @@ function draw() {
         vol = mic.getLevel();
         spectrum = fft.analyze();
     }
-    
+
     // Calculate average wave height to determine direction
     let totalZ = 0;
     let count = 0;
@@ -73,17 +73,17 @@ function draw() {
         }
     }
     let averageZ = totalZ / count;
-    
+
     waveDirection = averageZ - prevAverageZ;
     prevAverageZ = averageZ;
-    
+
     if (waveDirection < 0) {
         blackHoleStrength = map(abs(waveDirection), 0, 2, 0, 1);
         blackHoleStrength = constrain(blackHoleStrength * (1 + vol * 3), 0, 1);
     } else {
         blackHoleStrength *= 0.95;
     }
-    
+
     for (let s of stars) {
         s.update(vol, blackHoleStrength);
         s.show();
@@ -91,10 +91,10 @@ function draw() {
 
     let floatY = sin(frameCount * 0.01) * 10;
     translate(0, floatY, 0);
-    
+
     let rotationSpeed = 0.003 + vol * 0.05;
     angleY += rotationSpeed;
-    rotateX(PI/4);
+    rotateX(PI / 4);
     rotateZ(angleY);
 
     let bootProgress = 0;
@@ -110,7 +110,7 @@ function draw() {
         for (let j = 0; j < rows; j++) {
             let freqIndex = floor(map(i * cols + j, 0, cols * rows, 0, 128));
             let freqLevel = audioStarted ? (spectrum[freqIndex] || 0) : 0;
-            
+
             boxes[i][j].update(vol, freqLevel, bootProgress, isBooting);
             boxes[i][j].display();
         }
@@ -120,7 +120,10 @@ function draw() {
 function mousePressed() {
     if (!audioStarted) {
         userStartAudio().then(() => {
-            mic.start();
+            // Ensure mic is initialized before starting
+            if (mic && typeof mic.start === 'function') {
+                mic.start();
+            }
 
             if (bgMusic && bgMusic.isLoaded()) {
                 bgMusic.setVolume(0.5);
@@ -133,6 +136,8 @@ function mousePressed() {
             if (overlay) overlay.style.display = 'none';
             const hints = document.getElementById('control-hints');
             if (hints) hints.style.display = 'block';
+        }).catch(error => {
+            console.error('Audio initialization failed:', error);
         });
     }
 }
@@ -154,7 +159,7 @@ class Box {
         this.freqLevel = 0;
         this.originalZ = z;
     }
-    
+
     update(vol, freqLevel, bootProgress, isBooting) {
         this.freqLevel = freqLevel;
         let waveSpeed = this.speed * (1 + vol * 3);
@@ -163,7 +168,7 @@ class Box {
         let freqBoost = map(freqLevel, 0, 255, 0, 30);
         let hueShift = map(freqLevel, 0, 255, 0, 120);
         this.currentHue = (this.baseHue + hueShift) % 360;
-        
+
         if (isBooting) {
             let targetZ = sin(this.angle) * waveAmplitude + freqBoost;
             this.z = lerp(-200, targetZ, bootProgress);
@@ -171,7 +176,7 @@ class Box {
             this.z = sin(this.angle) * waveAmplitude + freqBoost;
         }
     }
-    
+
     display() {
         push();
         translate(this.x, this.y, this.z);
@@ -185,11 +190,11 @@ class Box {
         let baseSize = map(this.z, -scl, scl, size * 0.6, size * 1.2);
         let freqSize = map(this.freqLevel, 0, 255, 0, size * 0.3);
         let boxSize = baseSize + freqSize;
-        
+
         strokeWeight(map(this.freqLevel, 0, 255, 0.5, 2));
         stroke(heightHue, saturation, brightness);
         fill(heightHue, saturation * 0.9, brightness * 0.85, alpha);
-        
+
         box(boxSize);
         colorMode(RGB, 255);
         pop();
@@ -209,15 +214,15 @@ class Star {
         let r = map(noise(t), 0, 1, 300, 1200);
         let theta = map(noise(t + 100), 0, 1, 0, TWO_PI * 2);
         let phi = map(noise(t + 200), 0, 1, 0, PI);
-        
+
         this.x = r * sin(phi) * cos(theta);
         this.y = r * sin(phi) * sin(theta);
         this.z = r * cos(phi);
-        
+
         this.vx = 0;
         this.vy = 0;
         this.vz = 0;
-        
+
         this.brightness = map(noise(t + 300), 0, 1, 150, 255);
         this.baseSpeed = map(noise(t + 400), 0, 1, 0.5, 2);
     }
@@ -233,25 +238,25 @@ class Star {
             dy /= distToCenter;
             dz /= distToCenter;
         }
-        
+
         let pullStrength = blackHoleStrength * 8 * (1 + vol * 5);
         let proximityBoost = map(distToCenter, 50, 800, 3, 0.5);
         pullStrength *= proximityBoost;
-        
+
         this.vx += dx * pullStrength * 0.1;
         this.vy += dy * pullStrength * 0.1;
         this.vz += dz * pullStrength * 0.1;
-        
+
         let drift = this.baseSpeed * 0.3;
         this.vx += dx * drift * 0.05;
         this.vy += dy * drift * 0.05;
         this.vz += dz * drift * 0.05;
-        
+
         let damping = blackHoleStrength > 0.1 ? 0.98 : 0.95;
         this.vx *= damping;
         this.vy *= damping;
         this.vz *= damping;
-        
+
         this.x += this.vx;
         this.y += this.vy;
         this.z += this.vz;
